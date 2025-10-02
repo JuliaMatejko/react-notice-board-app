@@ -1,0 +1,1181 @@
+udemy.com/course/react-the-complete-guide-incl-redux/learn/lecture/35734482#overview
+Section 33 - optional: React Summary & Core Feature Walkthrough
+---
+
+What you need to create react project:
+
+- Node.js (for example, installed with nvm-windows)     -->     JavaScript runtime environment
+- create-react-app OR vite      -->     tools for creating react projects - building, development server etc.
+
+---
+
+Create and run a new project app:
+
+- create-react-app:
+
+    npx create-react-app
+
+    npm install
+
+    npm start
+    
+- vite:
+
+    npm create vite     create project
+
+    npm install         install dependencies
+
+    npm run dev         build app and run development server
+---
+
+React project:
+- main.jsx      -> application entry point, imports React and ReactDOM library
+- App.jsx       -> application main, root component --> function that returns JSX code
+- index.html    -> only one project html file 
+- index.css     -> application main css styles file
+
+---
+
+Creating custom components
+    --> custim component must be uppercase  !!!
+            because that's how React differentiate between React components and default elements
+
+--- 
+
+Outputting Dynamic values   with {} and JSX
+    --> {2+2}, {someVariable}, {anyJsExpresion}
+
+    --> <h1>{name}</h1>
+
+---
+
+Returning multiple components in return statemebt
+    --> you can only return ONE element in return statement,
+        meaning only root one element but this element can have child elements
+        so you often need to wrap other elements with one element - for example div or some custom element
+        or   <Fragment>   (other syntax for fragment <> </> )
+    
+    --> <Post></Post>   <Post />    both ways of using component are correct
+
+---
+
+Passing data to components with Props
+
+--> Passing data from inside where this component is being used - from parent component
+
+App.jsx
+--------
+import Post from "./components/Post";
+
+function App() {
+  return (
+    <main>
+      <Post author="Maximilian" body="react is awesome"/>           <-- seting values for props
+      <Post author="Manuel" body="Check out the full course"/>      
+    </main>
+  );
+}
+
+export default App;
+
+Post.jsx
+--------
+function Post(props) {          <-- defining props parameter
+  return (
+    <div>
+      <p>{props.author}</p>     <-- using props
+      <p>{props.body}</p>
+    </div>
+  );
+}
+
+export default Post;
+
+---
+
+CSS styling and CSS modules
+
+
+Inline styles:
+
+<div style={{color:'red', textAlign: 'left'}}></div>        <-- passing object to {}
+
+!!! style properties cannot have '-' in name - use camelCase names instead
+
+--
+import css file styles (global, Component.module.css - module css):
+   
+    using   className   on elements:
+
+    <div className="post"></div>
+
+--
+ Component.module.css - module css
+   
+    --> styles scoped to particular module, given unique names by Vite/create-react-app tool
+
+--
+import styles to component:
+
+    import classes from './Post.module.css';
+---
+
+Good practise: put different components into different files !!! one component per file
+
+---
+
+ <label htmlFor="body">Text</label>
+
+ htmlFor instead of for
+
+ like className
+
+ ---
+
+State and Event listeners
+
+-- Event listeners  - onChange, onKeyDown etc --
+
+- creating   handler function   which responds when some event occurs
+
+import classes from "./NewPost.module.css";
+
+function NewPost() {
+  function changeBodyHandler(event) {       <-- event handler function
+    console.log(event.target.value);
+  }
+
+  return (
+    <form className={classes.form}>
+      <p>
+        <label htmlFor="body">Text</label>
+        <textarea id="body" required rows={3} onChange={changeBodyHandler} />       <-- onChange event prop with dynamicaly passed function
+      </p>
+      <p>
+        <label htmlFor="name">Your name</label>
+        <input type="text" id="name" required />
+      </p>
+    </form>
+  );
+}
+
+export default NewPost;
+
+-- State --     useState --> react hook
+
+-- Why we need state?
+
+JSX code is rendered as it is when the component is renderd for the firs time.
+If refrence so dynamic values they wont be rendered again, unless we use state.
+
+-- useState     -->  react hook  - function in reast with 'use' in name are considered react hooks
+
+!! react hook functions bust be executed inside react component function
+
+--
+state value can be anythig - string, number, object...
+
+useState returns an array
+where first element is   current value  and second,   state updating function
+
+const stateData = useState("");
+
+stateData[0]; // current value
+stateData[1]; // state updating function
+
+--
+
+when using state react will only update parts of UI that needs to be updated
+
+-- Array destructuring
+
+const [ currentValue, setCurrentValue ] = useState('');
+
+const [ enteredBody, setEnteredBody ] = useState('');
+
+
+-- How to update state?
+--> use   state updating function   in event handler function
+
+  const [enteredBody, setEnteredBody] = useState("");       <-- 
+
+  function changeBodyHandler(event) {
+    setEnteredBody(event.target.value);        <-- use state updating function
+  }
+
+-- Lifting state up --> passing state to parent component
+
+lifting the state up
+
+--> If you have state that's manipulated in component A but needed in component B,
+    you should   lift the state up   to a component that has access
+    to both components that need the state.
+
+    So in this case, it's the   PostsList   component
+    that needs the state to pass it to   Post
+    as a value for the body prop.
+
+    And it's also the   PostsList component   that has access
+    to the   NewPost component
+    which is the place where the state should be manipulated.
+
+Parent component:
+--> has state variable and handler function
+    --> passes   handler function   to child comonent where   event/change of state   occurs
+
+import NewPost from "./NewPost";
+import Post from "./Post";
+import classes from "./PostsList.module.css";
+
+function PostsList() {
+  const [enteredBody, setEnteredBody] = useState("");
+
+  function bodyChangeHandler(event) {
+    setEnteredBody(event.target.value);
+  }
+
+  return (
+    <>
+      <NewPost onBodyChange={bodyChangeHandler}/>
+      <ul className={classes.posts}>
+        <Post author="Maximilian" body={enteredBody} />
+        <Post author="Manuel" body="Check out the full course" />
+      </ul>
+    </>
+  );
+}
+
+export default PostsList;
+
+
+Child component:
+--> receives handler function and state from parent component by props
+
+import classes from "./NewPost.module.css";
+
+function NewPost(props) {
+  return (
+    <form className={classes.form}>
+      <p>
+        <label htmlFor="body">Text</label>
+        <textarea id="body" required rows={3} onChange={props.onBodyChange} />
+      </p>
+      <p>{enteredBody}</p>
+      <p>
+        <label htmlFor="name">Your name</label>
+        <input type="text" id="name" required />
+      </p>
+    </form>
+  );
+}
+
+export default NewPost;
+
+----
+
+special 'children' prop
+
+Wrapper component:
+
+import classes from './Modal.module.css';
+
+function Modal({children}) {        <--     !!! object destructuring - getting children property out of props
+  return (
+    <>
+      <div className={classes.backdrop}/>
+      <dialog className={classes.modal}>{children}</dialog>
+    </>
+  );
+}
+
+export default Modal;
+
+
+Wrapped component content with 'Modal':
+
+import { useState } from "react";
+import NewPost from "./NewPost";
+import Post from "./Post";
+import classes from "./PostsList.module.css";
+import Modal from "./Modal";
+
+function PostsList() {
+  const [enteredBody, setEnteredBody] = useState("");
+  const [enteredAuthor, setEnteredAuthor] = useState("");
+
+  function bodyChangeHandler(event) {
+    setEnteredBody(event.target.value);
+  }
+
+  function authorChangeHandler(event) {
+    setEnteredAuthor(event.target.value);
+  }
+
+  return (
+    <>
+      <Modal>       <-- Modal - wrapper component
+        <NewPost
+          onBodyChange={bodyChangeHandler}
+          onAuthorChange={authorChangeHandler}
+        />
+      </Modal>
+      <ul className={classes.posts}>
+        <Post author={enteredAuthor} body={enteredBody} />
+        <Post author="Manuel" body="Check out the full course" />
+      </ul>
+    </>
+  );
+}
+
+export default PostsList;
+
+----
+
+-- State and showing conditional content
+
+
+1.   using ternary operator   to show/hide content
+
+import { useState } from "react";
+import NewPost from "./NewPost";
+import Post from "./Post";
+import classes from "./PostsList.module.css";
+import Modal from "./Modal";
+
+function PostsList() {
+  const [modalIsVisible, setModalIsVisible] = useState(true);
+  const [enteredBody, setEnteredBody] = useState("");
+  const [enteredAuthor, setEnteredAuthor] = useState("");
+
+  function hideModalHandler(event) {
+    setModalIsVisible(false);
+  }
+
+  function bodyChangeHandler(event) {
+    setEnteredBody(event.target.value);
+  }
+
+  function authorChangeHandler(event) {
+    setEnteredAuthor(event.target.value);
+  }
+
+  return (
+    <>
+      {modalIsVisible ? (                       
+        <Modal onClose={hideModalHandler}>
+          <NewPost
+            onBodyChange={bodyChangeHandler}
+            onAuthorChange={authorChangeHandler}
+          />
+        </Modal>
+      ) : false}
+      <ul className={classes.posts}>
+        <Post author={enteredAuthor} body={enteredBody} />
+        <Post author="Manuel" body="Check out the full course" />
+      </ul>
+    </>
+  );
+}
+
+export default PostsList;
+
+
+OR      2.  by using temporary variable
+
+import { useState } from "react";
+import NewPost from "./NewPost";
+import Post from "./Post";
+import classes from "./PostsList.module.css";
+import Modal from "./Modal";
+
+function PostsList() {
+  const [modalIsVisible, setModalIsVisible] = useState(true);
+  const [enteredBody, setEnteredBody] = useState("");
+  const [enteredAuthor, setEnteredAuthor] = useState("");
+
+  function hideModalHandler(event) {
+    setModalIsVisible(false);
+  }
+
+  function bodyChangeHandler(event) {
+    setEnteredBody(event.target.value);
+  }
+
+  function authorChangeHandler(event) {
+    setEnteredAuthor(event.target.value);
+  }
+
+  let modalContent;     <-- add variable to store modal content
+
+  if (modalIsVisible) {     <-- check state, if true set value for variable
+    modalContent = (
+      <Modal onClose={hideModalHandler}>
+        <NewPost
+          onBodyChange={bodyChangeHandler}
+          onAuthorChange={authorChangeHandler}
+        />
+      </Modal>
+    );
+  }
+
+  return (
+    <>
+      {modalContent}                    <-- display variable data
+      <ul className={classes.posts}>
+        <Post author={enteredAuthor} body={enteredBody} />
+        <Post author="Manuel" body="Check out the full course" />
+      </ul>
+    </>
+  );
+}
+
+export default PostsList;
+
+
+OR   3. using logical AND   &&   operator
+
+import { useState } from "react";
+import NewPost from "./NewPost";
+import Post from "./Post";
+import classes from "./PostsList.module.css";
+import Modal from "./Modal";
+
+function PostsList() {
+  const [modalIsVisible, setModalIsVisible] = useState(true);
+  const [enteredBody, setEnteredBody] = useState("");
+  const [enteredAuthor, setEnteredAuthor] = useState("");
+
+  function hideModalHandler(event) {
+    setModalIsVisible(false);
+  }
+
+  function bodyChangeHandler(event) {
+    setEnteredBody(event.target.value);
+  }
+
+  function authorChangeHandler(event) {
+    setEnteredAuthor(event.target.value);
+  }
+
+  return (
+    <>
+      {modalIsVisible && (                  <-- use   state variable && [content]
+        <Modal onClose={hideModalHandler}>
+          <NewPost
+            onBodyChange={bodyChangeHandler}
+            onAuthorChange={authorChangeHandler}
+          />
+        </Modal>
+      )}
+      <ul className={classes.posts}>
+        <Post author={enteredAuthor} body={enteredBody} />
+        <Post author="Manuel" body="Check out the full course" />
+      </ul>
+    </>
+  );
+}
+
+export default PostsList;
+---
+
+passing these different functions across multiple levels
+
+of components and passing these different state values
+
+around of course can be confusing at first.
+
+
+So therefore it's just important to keep in mind that
+
+in the end we're just   passing values around   so that
+
+in the different components we can use exactly
+
+the values that should be used there.
+
+---
+
+convention is to name props that recive function as a value using 'on+Action'
+
+---
+
+handling form submition
+
+ event.preventDefult(); 
+
+ function submitHandler(event) {
+    event.preventDefult();  // prevent default behaviour - sending http request to server
+    const postData = {
+      body: enteredBody,
+      author: enteredAuthor
+    };
+    console.log(postData);
+  }
+---
+
+-- Updating state based on previous state
+
+-- spread operator
+
+function addPostHandler(postData) {
+    setPosts([postData, ...postData]);  // using ... operator (spread operator) to copy existing elements to a new array
+  }
+
+  --> this solution is not optimal
+
+!!!!  if you want to update state based on a previous state you should pass function to state function, instead of array
+
+  function addPostHandler(postData) {
+    setPosts((existingPosts) => [postData, ...existingPosts]);
+  }
+
+-->
+
+Now this looks very similar to what we had before
+
+but it's the technically better way of updating your state
+
+    if it depends on the   previous state   snapshot.
+
+
+
+The reason for data is that internally
+
+React   does actually   not execute   your state updating functions instantly.    !!! <-- why we need to pass function to state function
+
+At least   it's not guaranteed  that it will do so.
+
+
+But   it schedules those state updates   and
+
+in case you have multiple state updates after each other,
+
+you could potentially update your state based
+
+on some old state or anything like that.
+
+And therefore,   this way is a way      <-- using arrow function    !!!
+
+of making sure that React ensures
+
+that you get the latest correct state
+
+for this state update even
+
+if you have multiple pending state updates.
+
+
+---
+
+!!! using    map()  to display objects from array
+
+--> map returns   a new array   where every item
+
+in that old array was transformed
+
+into a new item into a new value.
+
+
+{posts.map((post) => (
+          <Post key={post.body} author={post.author} body={post.body} />    !!!
+        ))}
+
+
+key prop for react for efitient updating of elements
+---
+
+Adding Backend to the React SPA
+(Node.js, Express)
+
+-- Sending Requests - HTTP POST Requests -- to Backend
+
+Sending POST request using fetch method
+
+function PostsList({ isPosting, onStopPosting }) {
+  // fetch('http://localhost:8080/posts').then(response => response.json()).then(
+    data => { setPosts(data.posts)});       <-- fetching data causes infinite loop of updates for component
+
+  const [posts, setPosts] = useState([]);
+
+  function addPostHandler(postData) {
+    fetch('http://localhost:8080/posts', {      <-- fetch method sends POST request to backend, which creates a new object in database
+      method:'POST',
+      body: JSON.stringify(postData),
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    setPosts((existingPosts) => [postData, ...existingPosts]);
+  }
+
+-- How solve problem with fetching data that is causing infininte loop in a component?     use sideEfects hook 
+
+Now, the hook we can use to solve problems like this
+where we effectively wanna cause a side effect
+in our component function,
+so where we wanna   trigger some action that does not directly influence the JSX code
+
+but maybe indirectly in the future
+or that does anything else
+that's not related to rendering the UI.
+
+In such cases, we get another hook we can use
+and that would be the   useEffect hook  ,
+which is there to wrap side effects.
+
+useEffect    allows you to safely run code like this    !
+without causing an infinite loop
+
+-- useEffect hook
+
+  useEffect(() => {
+    async function fetchPosts() {
+      const response = await fetch("http://localhost:8080/posts")
+      const resData = await response.json();
+        setPosts(resData.posts);
+    }
+
+    fetchPosts();
+  }, []);
+
+
+But how exactly is this function working
+and why is it now not causing an infinite loop?
+
+This   useEffect   function here, this hook
+is now preventing an infinite loop from occurring
+   by simply making sure
+that this effect function does not always execute
+when the component function executes.
+
+It executes sometimes
+when the component function executes.
+
+
+- But when does it execute?
+
+Well,   that's controlled with this   second argument
+that's passed to useEffect, this array here.
+
+This   array   in the end specifies the   dependencies
+of your effect function.
+
+And   a dependency is simply any variable
+or   function   that might be defined outside
+of this effect function
+
+anywhere in your React components, in this component
+or some parent component passed down through props.
+
+And whenever such a variable or function defined outside
+of the effect function changes,
+receives a new value, for example,
+this effect function   will be executed again  .
+
+Now,    if we have an   empty array   ,
+it simply means    this function has   no dependencies  
+and therefore, it    will never be executed again  .
+
+Instead,    React will only execute it   once
+and that's when this component is first rendered.
+
+And technically, it gets executed
+after the component first rendered,
+so theoretically, the component first renders
+without any posts
+and then it immediately executes this effect function
+where the posts get updated.
+
+--- Handle Loading state
+
+Create another state variable --> isFetching
+
+function PostsList({ isPosting, onStopPosting }) {
+  const [posts, setPosts] = useState([]);
+  const [isFetching, setIsFetching] = useState(false);      <-- new state variable used to handle loading state
+
+  useEffect(() => {
+    async function fetchPosts() {
+      setIsFetching(true);                                  <-- set isFetching true before starting to fetch data
+      const response = await fetch("http://localhost:8080/posts");
+      const resData = await response.json();
+      setPosts(resData.posts);
+      setIsFetching(false);                                 <-- set isFetching false after starting to fetch data
+    }
+
+    fetchPosts();
+  }, []);
+
+
+--- Understanding and adding Routing -  using React Router package
+
+npm install react-router-dom
+
+Now with that, we can add routing,
+and what's really important to keep in mind is that we still
+have a front-end application.
+This routing happens on the client side,
+not on some backend, but it does still enable us
+to support different paths
+and simply load different components
+for those different paths.
+
+--- Adding Routes
+
+main.jsx
+
+import React from "react";
+import ReactDOM from "react-dom/client";
+import { RouterProvider, createBrowserRouter } from "react-router-dom";     <-- importing RouterProvider and createBrowserRouter from react-router-dom
+
+import "./index.css";
+import App from "./App";
+import NewPost from "./components/NewPost";
+
+const router = createBrowserRouter([                                        <-- defining routes array with createBrowserRouter
+  { path: "/", element: <App /> },
+  { path: "/create-post", element: <NewPost /> },
+]);
+
+ReactDOM.createRoot(document.getElementById("root")).render(
+  <React.StrictMode>
+    <RouterProvider router={router} />          <-- repalcing <App /> component with RouterProvider elements
+  </React.StrictMode>
+);
+
+
+--- Working with   Layout Routes
+
+When building more complex React apps
+with Routing, it's quite common that some routes should also
+have shared layout elements.
+
+For example, this main navigation bar here at the top,
+should probably be visible on all routes we have.
+
+And to achieve this, you can add so-called    layout routes   .
+Which    are actually just normal routes
+   but routes that   nest other routes   inside of them.
+
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <RootLayout />,
+    children: [
+      { path: "/", element: <App /> },
+      { path: "/create-post", element: <NewPost /> },
+    ],
+  },
+]);
+
+
+-- Outlet component -->
+
+That's a special component provided by
+the react-router package, which should be rendered
+in the place where the actual nested route content
+should be rendered, should be injected, so to say.
+
+So    this is simply a placeholder where
+the nested routes can render their content
+in the RootLayout  .
+
+import MainHeader from "../components/MainHeader";
+
+function RootLayout() {
+  return (
+    <>
+      <MainHeader />
+      <Outlet />            <-- outlet component
+    </>
+  );
+}
+
+export default RootLayout;
+
+--- Linking & Navigating
+
+--- Link component
+
+import { Link } from 'react-router-dom';                <-- Link component import
+import { MdPostAdd, MdMessage } from "react-icons/md";
+
+import classes from "./MainHeader.module.css";
+
+function MainHeader({ onCreatePost }) {
+  return (
+    <header className={classes.header}>
+      <h1 className={classes.logo}>
+        <MdMessage />
+        React Poster
+      </h1>
+      <p>
+        <Link to="create-post" className={classes.button}>       <-- Link component
+          <MdPostAdd size={18} />
+          New Post
+        </Link>
+      </p>
+    </header>
+  );
+}
+
+export default MainHeader;
+
+
+---  how can we make sure that clicking new post opens this new post modal?
+
+Well, we need to create   a link   between these two different routes
+...
+We must replace this button with a link to this /create-post route.
+...
+For that reason, we want to stay in that single application
+world and just make sure that the URL changes
+and a new component gets loaded
+   without sending a new request   to the server
+serving the React app.
+
+
+--- programatic navigation - useNavigate hook
+
+
+import { useNavigate } from 'react-router-dom';     --> import useNavigate hook
+import classes from './Modal.module.css';
+
+function Modal({children}) {
+  const navigate = useNavigate();               --> create navigate hook variable
+
+  function closeHandler() {
+    navigate('..');                     //  .. --> go to parent route       --> use navigate variable as a function, pass route as a argument
+  }
+
+  return (
+    <>
+      <div className={classes.backdrop} onClick={closeHandler}/>
+      <dialog open className={classes.modal}>{children}</dialog>
+    </>
+  );
+}
+
+export default Modal;
+
+
+---  Data Fetching via loader()s -- instead of useEffect hook and fetch
+
+Because of course here we are fetching data,
+in the Posts component, we have the PostsList component,
+and in there, we are fetching data.
+
+We have this useEffect hook here
+where we load our posts and set our posts.
+We also have to code for sending postData here
+but that code isn't used at the moment anymore
+and I'll get back to that later.
+
+But when it comes to fetching data,
+we could stick to useEffect.
+
+But when using React router version 6.4 or higher,
+we have a more convenient way of doing so.
+
+Because with that version,
+you can go to your route definitions
+to the route that needs data,
+so the Posts route here, for example,
+and you can add    a loader property    to that route definition.
+
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <RootLayout />,
+    children: [
+      {
+        path: "/",
+        element: <Posts />,
+        loader: () => {},
+        children: [{ path: "/create-post", element: <NewPost /> }],
+      },
+    ],
+  },
+]);
+
+Now the   loader property
+expects to get a function as a value,
+and   React router will execute that function
+whenever that route gets activated,
+so whenever it's about to render this element  .
+
+That's when this function gets executed
+and you can therefore    use this function   to   load and prepare any data   that might be needed
+by   this route component   or   any other component used as part of that route,
+so any nested component used inside of the Posts component, for example.
+
+
+--- useLoaderData hook
+
+import { useLoaderData } from "react-router-dom";
+import Post from "./Post";
+import classes from "./PostsList.module.css";
+
+function PostsList() {
+  const posts = useLoaderData();
+
+  function addPostHandler(postData) {
+    fetch("http://localhost:8080/posts", {
+      method: "POST",
+      body: JSON.stringify(postData),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    setPosts((existingPosts) => [postData, ...existingPosts]);
+  }
+
+  return (
+    <>
+      {posts.length > 0 && (
+        <ul className={classes.posts}>
+          {posts.map((post) => (
+            <Post key={post.body} author={post.author} body={post.body} />
+          ))}
+        </ul>
+      )}
+      {posts.length === 0 && (
+        <div style={{ textAlign: "center", color: "white" }}>
+          <h2>There are no posts yet.</h2>
+          <p>start adding some!</p>
+        </div>
+      )}
+    </>
+  );
+}
+
+export default PostsList;
+
+
+--- Submiting data wth action()s
+
+import React from "react";
+import ReactDOM from "react-dom/client";
+import { RouterProvider, createBrowserRouter } from "react-router-dom";
+
+import "./index.css";
+import Posts, { loader as postsLoader } from "./routes/Posts";
+import NewPost, { action as newPostAction } from "./routes/NewPost";    <-- import action from NewPost as to avoid name clashes
+import RootLayout from "./routes/RootLayout";
+
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <RootLayout />,
+    children: [
+      {
+        path: "/",
+        element: <Posts />,
+        loader: postsLoader,
+        children: [
+          { path: "/create-post", element: <NewPost />, action: newPostAction },    <-- action
+        ],
+      },
+    ],
+  },
+]);
+
+ReactDOM.createRoot(document.getElementById("root")).render(
+  <React.StrictMode>
+    <RouterProvider router={router} />
+  </React.StrictMode>
+);
+
+
+--- Form component
+
+We can import a special component from React Router,
+and that would be the   Form component   with a capital F.
+
+And if we use that instead
+of the regular built-in form element,
+React Router will handle the form submission
+and it will   prevent   that browser default
+of sending a request
+
+but   it will still gather all the input data   ,
+still generate an object with that data for us,
+and that's the important part,
+   call the action    that is assigned to the route,
+which contains the form,
+the form with the capital F.
+
+
+import classes from "./NewPost.module.css";
+import Modal from "../components/Modal";
+import { Link, Form } from "react-router-dom";      <-- import Form component from  react-router-dom
+
+function NewPost() {
+  return (
+    <Modal>
+      <Form method='post' className={classes.form}>               <-- Form component
+        <p>
+          <label htmlFor="body">Text</label>
+          <textarea id="body" name="body" required rows={3} />
+        </p>
+        <p>
+          <label htmlFor="name">Your name</label>
+          <input type="text" id="name" name="author" required />
+        </p>
+        <p className={classes.actions}>
+          <Link to=".." type="button">
+            Cancel
+          </Link>
+          <button>Submit</button>
+        </p>
+      </Form>
+    </Modal>
+  );
+}
+
+export default NewPost;
+
+export function action() {
+  fetch("http://localhost:8080/posts", {
+    method: "POST",
+    body: JSON.stringify(postData),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+}
+
+So that in the end,
+
+it's now this action function
+
+that will be executed by React Router
+
+if this form here is submitted. 
+
+--- redirect, action parameter,
+
+import classes from "./NewPost.module.css";
+import Modal from "../components/Modal";
+import { Link, Form, redirect } from "react-router-dom";
+
+function NewPost() {
+  return (
+    <Modal>
+      <Form method='post' className={classes.form}>
+        <p>
+          <label htmlFor="body">Text</label>
+          <textarea id="body" name="body" required rows={3} />
+        </p>
+        <p>
+          <label htmlFor="name">Your name</label>
+          <input type="text" id="name" name="author" required />
+        </p>
+        <p className={classes.actions}>
+          <Link to=".." type="button">
+            Cancel
+          </Link>
+          <button>Submit</button>
+        </p>
+      </Form>
+    </Modal>
+  );
+}
+
+export default NewPost;
+
+export async function action({request}) {
+  const formData = await request.formData();
+  const postData = Object.fromEntries(formData); // {body: '...', author: '...'}
+  await fetch("http://localhost:8080/posts", {
+    method: "POST",
+    body: JSON.stringify(postData),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  return redirect('/');
+}
+
+And as a result, you can see that our components
+got much leaner.
+
+We don't have to manually keep track
+of what was entered.
+
+We don't have to manually handle the form submission
+and prevent the default.
+
+We have to do none of that.
+We instead embrace React Router
+for sending and getting data,
+for navigation between pages,
+and that's why React Router is awesome.
+Also, for simple demos like this one,
+but especially, of course, for more complex websites.
+
+--- Dynamic routes
+
+main.jsx
+
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <RootLayout />,
+    children: [
+      {
+        path: "/",
+        element: <Posts />,
+        loader: postsLoader,
+        children: [
+          { path: "/create-post", element: <NewPost />, action: newPostAction },
+          { path: "/:postId", element: <PostDetails />, loader: postDetailsLoader }     <-- dynamic route
+        ],
+      },
+    ],
+  },
+]);
+
+PostDetails.jsx
+
+import { useLoaderData, Link } from "react-router-dom";
+
+import Modal from "../components/Modal";
+import classes from "./PostDetails.module.css";
+
+function PostDetails() {
+  const post = useLoaderData();
+
+  if (!post) {
+    return (
+      <Modal>
+        <main className={classes.details}>
+          <h1>Could not find post</h1>
+          <p>Unfortunately, the requested post could not be found.</p>
+          <p>
+            <Link to=".." className={classes.btn}>
+              Okay
+            </Link>
+          </p>
+        </main>
+      </Modal>
+    );
+  }
+  return (
+    <Modal>
+      <main className={classes.details}>
+        <p className={classes.author}>{post.author}</p>
+        <p className={classes.text}>{post.body}</p>
+      </main>
+    </Modal>
+  );
+}
+
+export default PostDetails;
+
+export async function loader({params}) {
+  const response = await fetch('http://localhost:8080/posts/' + params.postId);
+  const resData = await response.json();
+  return resData.post;
+}
